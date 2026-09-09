@@ -1,0 +1,654 @@
+from pathlib import Path
+from PIL import Image
+import io, base64, html as htmlmod
+
+src1 = Image.open("/mnt/data/power_assets/احتراف صيانة تكييفات باور.png").convert("RGB")
+src2 = Image.open("/mnt/data/power_assets/Alexandria Power AC Service Gallery.png").convert("RGB")
+
+def crop_to_data(img, box, max_w=1000, quality=78):
+    c = img.crop(box)
+    if c.width > max_w:
+        h = round(c.height * max_w / c.width)
+        c = c.resize((max_w, h), Image.Resampling.LANCZOS)
+    b = io.BytesIO()
+    c.save(b, "WEBP", quality=quality, method=6)
+    return "data:image/webp;base64," + base64.b64encode(b.getvalue()).decode("ascii")
+
+# Crops deliberately avoid the old Alexandria-specific text areas.
+hero = crop_to_data(src1, (640, 0, 1536, 650), 1100, 80)        # technician + AC
+service1 = crop_to_data(src1, (300, 650, 570, 1135), 700, 80)  # indoor AC maintenance
+service2 = crop_to_data(src1, (580, 650, 855, 1135), 700, 80)  # outdoor unit service
+service3 = crop_to_data(src1, (870, 650, 1135, 1135), 700, 80) # dirty filter
+service4 = crop_to_data(src1, (1140, 650, 1536, 1135), 700, 80)# living room AC
+logo = crop_to_data(src2, (1210, 10, 1520, 145), 500, 88)      # POWER logo only
+
+map_embed = """https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3456.5449305303396!2d31.252243099999994!3d29.96376560000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145847ffaaedf841%3A0xce96f4687f0a87b1!2z2LXZitin2YbYqSDYqtmD2YrZitmB2KfYqiDYqNin2YjYsQ!5e0!3m2!1sen!2seg!4v1788916735726!5m2!1sen!2seg"""
+phone = "01027296356"
+tel = "+201027296356"
+wa = "https://wa.me/201027296356"
+
+page = f"""<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>صيانة تكييفات باور {phone} | فحص وإصلاح تكييفات Power</title>
+<meta name="description" content="صيانة تكييفات باور في المعادي والقاهرة. فحص وتشخيص ضعف التبريد، تسريب المياه، أصوات التكييف، تنظيف الفلاتر وصيانة الوحدات الداخلية والخارجية. اتصل {phone}.">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="theme-color" content="#0b3f84">
+<meta name="format-detection" content="telephone=yes">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_EG">
+<meta property="og:title" content="صيانة تكييفات باور">
+<meta property="og:description" content="فحص وتشخيص وصيانة تكييفات باور في المعادي والقاهرة.">
+<meta property="og:image" content="{hero}">
+
+<style>
+:root {{
+    --navy:#082f65;
+    --blue:#0b4d9b;
+    --cyan:#0f8edc;
+    --ice:#eef7ff;
+    --text:#13243d;
+    --muted:#64748b;
+    --line:#dbe8f5;
+    --white:#fff;
+    --shadow:0 18px 45px rgba(8,47,101,.12);
+}}
+* {{ box-sizing:border-box; margin:0; padding:0; }}
+html {{ scroll-behavior:smooth; }}
+body {{
+    font-family:Tahoma, Arial, "Segoe UI", sans-serif;
+    background:#f7fbff;
+    color:var(--text);
+    line-height:1.85;
+}}
+a {{ text-decoration:none; color:inherit; }}
+img {{ display:block; width:100%; }}
+.container {{ width:min(1180px,92%); margin:auto; }}
+
+.topbar {{
+    background:var(--navy);
+    color:#fff;
+    text-align:center;
+    padding:8px 12px;
+    font-weight:700;
+    font-size:14px;
+}}
+header {{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+}}
+.nav {{
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+}}
+.brand {{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:var(--navy);
+    font-weight:900;
+    font-size:22px;
+}}
+.brand img {{
+    width:145px;
+    height:54px;
+    object-fit:contain;
+    background:#fff;
+}}
+.menu {{ display:flex; gap:21px; font-size:14px; font-weight:800; }}
+.menu a:hover {{ color:var(--cyan); }}
+
+.btn {{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 20px;
+    border-radius:999px;
+    font-weight:900;
+    transition:.2s ease;
+}}
+.btn:hover {{ transform:translateY(-2px); }}
+.btn-primary {{ background:var(--blue); color:#fff; box-shadow:0 10px 24px rgba(11,77,155,.2); }}
+.btn-light {{ background:#fff; color:var(--blue); border:1px solid #bdd7ef; }}
+
+.hero {{
+    padding:62px 0 38px;
+    background:
+        radial-gradient(circle at 85% 5%, rgba(15,142,220,.12), transparent 34%),
+        linear-gradient(180deg,#f9fdff,#eef7ff);
+}}
+.hero-grid {{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:42px;
+    align-items:center;
+}}
+.badge {{
+    display:inline-flex;
+    background:#dceeff;
+    color:var(--blue);
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:900;
+}}
+h1 {{
+    font-size:clamp(42px,6vw,67px);
+    line-height:1.15;
+    letter-spacing:-1.4px;
+    margin:16px 0 14px;
+}}
+h2 {{
+    font-size:clamp(29px,4vw,40px);
+    line-height:1.3;
+    margin-bottom:10px;
+}}
+h3 {{ line-height:1.45; }}
+.lead {{ color:var(--muted); font-size:18px; }}
+.actions {{ display:flex; gap:11px; flex-wrap:wrap; margin-top:24px; }}
+
+.hero-image {{
+    border-radius:30px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    background:#dfefff;
+}}
+.hero-image img {{
+    aspect-ratio:4/3;
+    object-fit:cover;
+}}
+
+section {{ padding:62px 0; }}
+.section-head {{
+    text-align:center;
+    max-width:850px;
+    margin:0 auto 32px;
+}}
+.section-head p {{ color:var(--muted); }}
+
+.services {{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+}}
+.card {{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:22px;
+    box-shadow:0 10px 30px rgba(8,47,101,.05);
+}}
+.icon {{
+    width:50px;
+    height:50px;
+    display:grid;
+    place-items:center;
+    background:#e7f3ff;
+    border-radius:15px;
+    font-size:23px;
+    margin-bottom:12px;
+}}
+.card h3 {{ margin-bottom:7px; font-size:20px; }}
+.card p {{ color:var(--muted); font-size:15px; }}
+
+.split {{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:34px;
+    align-items:center;
+}}
+.split-image {{
+    border-radius:26px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+}}
+.split-image img {{
+    aspect-ratio:4/3;
+    object-fit:cover;
+}}
+.points {{
+    display:grid;
+    gap:10px;
+    margin-top:18px;
+}}
+.point {{
+    background:#fff;
+    border:1px solid var(--line);
+    padding:13px 15px;
+    border-radius:14px;
+}}
+.point strong {{ color:var(--blue); }}
+
+.faults {{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:13px;
+}}
+.fault {{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:15px;
+    padding:15px 17px;
+    font-weight:800;
+}}
+
+.gallery {{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    gap:14px;
+}}
+.gallery figure {{
+    margin:0;
+    border-radius:21px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:var(--shadow);
+}}
+.gallery img {{ width:100%; height:100%; object-fit:cover; }}
+.g1 {{ grid-column:span 7; min-height:360px; }}
+.g2 {{ grid-column:span 5; min-height:360px; }}
+.g3,.g4,.g5 {{ grid-column:span 4; min-height:275px; }}
+
+.contact {{
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:24px;
+    align-items:stretch;
+}}
+.contact-box {{
+    background:linear-gradient(145deg,var(--navy),var(--cyan));
+    color:#fff;
+    padding:34px;
+    border-radius:28px;
+    box-shadow:var(--shadow);
+}}
+.contact-box p {{ opacity:.92; }}
+.phone {{
+    display:inline-block;
+    direction:ltr;
+    font-size:38px;
+    font-weight:900;
+    color:#fff;
+    margin:12px 0 17px;
+}}
+.contact-actions {{ display:flex; gap:10px; flex-wrap:wrap; }}
+.contact-actions .btn {{ background:#fff; color:var(--blue); }}
+.address {{
+    margin-top:22px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,255,255,.25);
+    font-size:14px;
+}}
+.map {{
+    min-height:445px;
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    background:#dce9f5;
+}}
+.map iframe {{
+    width:100%;
+    min-height:445px;
+    height:100%;
+    border:0;
+    display:block;
+}}
+
+details {{
+    max-width:900px;
+    margin:11px auto;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:15px 17px;
+}}
+summary {{ cursor:pointer; font-weight:900; }}
+details p {{ color:var(--muted); margin-top:8px; }}
+
+footer {{
+    background:var(--navy);
+    color:#d7e8f8;
+    text-align:center;
+    padding:32px 0;
+    font-size:14px;
+}}
+footer strong {{ color:#fff; font-size:20px; }}
+
+.float-call {{
+    position:fixed;
+    left:18px;
+    bottom:18px;
+    z-index:60;
+    background:var(--blue);
+    color:#fff;
+    width:62px;
+    height:62px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:24px;
+    box-shadow:0 12px 30px rgba(0,0,0,.22);
+}}
+
+@media(max-width:900px) {{
+    .hero-grid,.split,.contact {{ grid-template-columns:1fr; }}
+    .services {{ grid-template-columns:repeat(2,1fr); }}
+    .menu {{ display:none; }}
+    .g1,.g2,.g3,.g4,.g5 {{ grid-column:span 12; min-height:280px; }}
+}}
+@media(max-width:560px) {{
+    .services,.faults {{ grid-template-columns:1fr; }}
+    .brand span {{ display:none; }}
+    .brand img {{ width:120px; }}
+    .phone {{ font-size:29px; }}
+}}
+</style>
+
+<script type="application/ld+json">
+{{
+  "@context":"https://schema.org",
+  "@type":"HomeAndConstructionBusiness",
+  "name":"صيانة تكييفات باور",
+  "telephone":"{tel}",
+  "description":"خدمات فحص وتشخيص وصيانة تكييفات باور في المعادي والقاهرة.",
+  "address":{{
+    "@type":"PostalAddress",
+    "streetAddress":"31 Street 105",
+    "addressLocality":"Maadi Al Khabiri Al Wasti, Maadi",
+    "addressRegion":"Cairo Governorate",
+    "postalCode":"4211181",
+    "addressCountry":"EG"
+  }},
+  "geo":{{
+    "@type":"GeoCoordinates",
+    "latitude":29.9637656,
+    "longitude":31.2522431
+  }},
+  "areaServed":["Maadi","Cairo"],
+  "openingHours":"Mo-Su 00:00-23:59",
+  "knowsAbout":[
+    "صيانة تكييفات باور",
+    "ضعف تبريد التكييف",
+    "تنظيف فلاتر التكييف",
+    "صيانة الوحدة الداخلية",
+    "صيانة الوحدة الخارجية",
+    "تسريب مياه التكييف"
+  ]
+}}
+</script>
+
+<script type="application/ld+json">
+{{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {{
+      "@type":"Question",
+      "name":"لماذا تكييف باور لا يبرد جيدًا؟",
+      "acceptedAnswer":{{
+        "@type":"Answer",
+        "text":"قد يرتبط ضعف التبريد باتساخ الفلاتر أو ضعف تدفق الهواء أو المروحة أو الحساسات أو دورة التبريد، لذلك يفضل الفحص قبل تحديد سبب العطل."
+      }}
+    }},
+    {{
+      "@type":"Question",
+      "name":"هل ضعف التبريد يعني شحن غاز تبريد؟",
+      "acceptedAnswer":{{
+        "@type":"Answer",
+        "text":"ليس بالضرورة. يتم أولًا فحص الفلاتر وتدفق الهواء والمراوح والحساسات والتأكد من دورة التبريد وأي احتمال للتسريب."
+      }}
+    }},
+    {{
+      "@type":"Question",
+      "name":"ما أسباب تسريب المياه من تكييف باور؟",
+      "acceptedAnswer":{{
+        "@type":"Answer",
+        "text":"قد ينتج التسريب عن انسداد مسار التصريف أو تراكم الأتربة أو مشكلة في تركيب أو ميل الوحدة، ويحتاج السبب إلى فحص مباشر."
+      }}
+    }}
+  ]
+}}
+</script>
+</head>
+
+<body>
+
+<div class="topbar">صيانة تكييفات باور — خدمة 24 ساعة — {phone}</div>
+
+<header>
+<div class="container nav">
+    <a href="#home" class="brand">
+        <img src="{logo}" alt="Power Air Conditioning">
+        <span>صيانة تكييفات باور</span>
+    </a>
+
+    <nav class="menu">
+        <a href="#services">الخدمات</a>
+        <a href="#faults">الأعطال</a>
+        <a href="#gallery">الصور</a>
+        <a href="#location">الموقع</a>
+    </nav>
+
+    <a href="tel:{tel}" class="btn btn-primary">اتصل الآن</a>
+</div>
+</header>
+
+<main id="home">
+
+<section class="hero">
+<div class="container hero-grid">
+    <div>
+        <span class="badge">فحص • صيانة • تنظيف</span>
+        <h1>صيانة تكييفات باور في المعادي والقاهرة</h1>
+        <p class="lead">
+            فحص وتشخيص أعطال تكييفات باور مع تحديد سبب المشكلة قبل الإصلاح،
+            سواء كان العطل ضعف تبريد، تسريب مياه، صوت غير طبيعي، توقف الوحدة،
+            ضعف تدفق الهواء أو الحاجة إلى تنظيف الفلاتر والوحدات.
+        </p>
+
+        <div class="actions">
+            <a href="tel:{tel}" class="btn btn-primary">اتصال {phone}</a>
+            <a href="{wa}" target="_blank" rel="noopener" class="btn btn-light">واتساب</a>
+        </div>
+    </div>
+
+    <div class="hero-image">
+        <img src="{hero}" alt="فني صيانة تكييفات باور">
+    </div>
+</div>
+</section>
+
+<section id="services">
+<div class="container">
+    <div class="section-head">
+        <h2>خدمات صيانة تكييفات باور</h2>
+        <p>خدمات فحص وصيانة لأنظمة التكييف المنزلية مع تشخيص العطل قبل بدء الإصلاح.</p>
+    </div>
+
+    <div class="services">
+        <article class="card">
+            <div class="icon">❄️</div>
+            <h3>فحص ضعف التبريد</h3>
+            <p>مراجعة تدفق الهواء والفلاتر والمراوح والحساسات ودورة التبريد لتحديد سبب ضعف الأداء.</p>
+        </article>
+
+        <article class="card">
+            <div class="icon">🔧</div>
+            <h3>صيانة الوحدة الداخلية</h3>
+            <p>فحص الفلاتر والمروحة ومجرى التصريف والحساسات والأجزاء المرتبطة بتشغيل الوحدة.</p>
+        </article>
+
+        <article class="card">
+            <div class="icon">⚙️</div>
+            <h3>صيانة الوحدة الخارجية</h3>
+            <p>فحص مكونات التشغيل والمروحة ودائرة الكهرباء ودورة التبريد طبقًا لطبيعة العطل.</p>
+        </article>
+
+        <article class="card">
+            <div class="icon">🧼</div>
+            <h3>تنظيف الفلاتر</h3>
+            <p>تنظيف الفلاتر ومراجعة مسار الهواء للمساعدة في استعادة تدفق الهواء الطبيعي.</p>
+        </article>
+    </div>
+</div>
+</section>
+
+<section>
+<div class="container split">
+    <div class="split-image">
+        <img src="{service1}" alt="صيانة وحدة تكييف باور الداخلية" loading="lazy">
+    </div>
+
+    <div>
+        <span class="badge">تشخيص قبل الإصلاح</span>
+        <h2>ضعف التبريد لا يعني دائمًا الحاجة إلى شحن</h2>
+        <p class="lead">
+            قبل اتخاذ أي قرار يتم فحص الفلاتر وتدفق الهواء والمراوح والحساسات
+            ودورة التبريد، مع التأكد من عدم وجود سبب آخر يؤثر على كفاءة الجهاز.
+        </p>
+
+        <div class="points">
+            <div class="point"><strong>ضعف الهواء:</strong> فحص الفلاتر والمروحة ومجرى الهواء.</div>
+            <div class="point"><strong>تسريب المياه:</strong> مراجعة مسار التصريف وحالة الوحدة الداخلية.</div>
+            <div class="point"><strong>صوت غير طبيعي:</strong> فحص المروحة والتثبيت والأجزاء المتحركة.</div>
+        </div>
+    </div>
+</div>
+</section>
+
+<section id="faults">
+<div class="container">
+    <div class="section-head">
+        <h2>أشهر أعطال تكييفات باور</h2>
+        <p>أعراض شائعة تستحق الفحص بدل تغيير أجزاء أو شحن غاز التبريد بدون تشخيص.</p>
+    </div>
+
+    <div class="faults">
+        <div class="fault">تكييف باور لا يبرد</div>
+        <div class="fault">ضعف تبريد تكييف باور</div>
+        <div class="fault">التكييف يخرج هواء بدون تبريد</div>
+        <div class="fault">تسريب مياه من الوحدة الداخلية</div>
+        <div class="fault">الوحدة الخارجية لا تعمل</div>
+        <div class="fault">التكييف يفصل ويعمل باستمرار</div>
+        <div class="fault">صوت مرتفع أثناء التشغيل</div>
+        <div class="fault">تكون ثلج على الوحدة الداخلية</div>
+        <div class="fault">ضعف تدفق الهواء</div>
+        <div class="fault">التكييف لا يستجيب للتشغيل</div>
+    </div>
+</div>
+</section>
+
+<section id="gallery">
+<div class="container">
+    <div class="section-head">
+        <h2>صور صيانة تكييفات باور</h2>
+        <p>صور من الهوية البصرية التي تم إعدادها لخدمات صيانة تكييفات باور. fileciteturn2file0L11-L17</p>
+    </div>
+
+    <div class="gallery">
+        <figure class="g1"><img src="{hero}" alt="فني صيانة تكييف باور" loading="lazy"></figure>
+        <figure class="g2"><img src="{service1}" alt="فحص الوحدة الداخلية لتكييف باور" loading="lazy"></figure>
+        <figure class="g3"><img src="{service2}" alt="صيانة الوحدة الخارجية لتكييف باور" loading="lazy"></figure>
+        <figure class="g4"><img src="{service3}" alt="تنظيف فلتر تكييف باور" loading="lazy"></figure>
+        <figure class="g5"><img src="{service4}" alt="تكييف باور في المنزل" loading="lazy"></figure>
+    </div>
+</div>
+</section>
+
+<section id="location">
+<div class="container contact">
+    <div class="contact-box">
+        <span class="badge" style="background:#fff;color:#0b4d9b;">تواصل معنا</span>
+        <h2 style="margin-top:14px;">طلب صيانة تكييف باور</h2>
+        <p>للاستفسار عن الفحص أو الصيانة في المعادي والقاهرة تواصل عبر الهاتف أو واتساب.</p>
+
+        <a href="tel:{tel}" class="phone">{phone}</a>
+
+        <div class="contact-actions">
+            <a href="tel:{tel}" class="btn">اتصال</a>
+            <a href="{wa}" target="_blank" rel="noopener" class="btn">واتساب</a>
+        </div>
+
+        <div class="address">
+            <strong>العنوان:</strong><br>
+            31 Street 105,<br>
+            Maadi Al Khabiri Al Wasti,<br>
+            Maadi, Cairo Governorate 4211181
+            <br><br>
+            <strong>ساعات العمل:</strong> 24 ساعة
+        </div>
+    </div>
+
+    <div class="map">
+        <iframe
+            src="{map_embed}"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            title="موقع صيانة تكييفات باور على خرائط Google">
+        </iframe>
+    </div>
+</div>
+</section>
+
+<section>
+<div class="container">
+    <div class="section-head">
+        <h2>الأسئلة الشائعة حول صيانة تكييفات باور</h2>
+    </div>
+
+    <details>
+        <summary>لماذا تكييف باور لا يبرد جيدًا؟</summary>
+        <p>قد يكون السبب متعلقًا بالفلاتر أو تدفق الهواء أو المراوح أو الحساسات أو دورة التبريد، لذلك يفضل الفحص قبل تحديد سبب المشكلة.</p>
+    </details>
+
+    <details>
+        <summary>هل ضعف التبريد يعني شحن غاز التبريد؟</summary>
+        <p>ليس بالضرورة. يتم فحص الفلاتر والمراوح والحساسات ودورة التبريد والتأكد من عدم وجود تسريب قبل اتخاذ القرار.</p>
+    </details>
+
+    <details>
+        <summary>لماذا يسرب تكييف باور مياه؟</summary>
+        <p>قد يرتبط السبب بانسداد مسار التصريف أو تراكم الأتربة أو مشكلة في الوحدة الداخلية أو تركيبها، ويحدد الفحص السبب الفعلي.</p>
+    </details>
+
+    <details>
+        <summary>متى يحتاج التكييف إلى تنظيف الفلاتر؟</summary>
+        <p>عند ضعف تدفق الهواء أو تراكم الأتربة أو الاستخدام المستمر لفترات طويلة، ويفضل تنظيفها دوريًا حسب ظروف التشغيل.</p>
+    </details>
+</div>
+</section>
+
+</main>
+
+<footer>
+<div class="container" style="display:block;">
+    <strong>صيانة تكييفات باور</strong><br>
+    المعادي — القاهرة<br>
+    {phone}<br><br>
+    <small>موقع لخدمات الصيانة ولا يدعي أنه الموقع الرسمي للشركة المصنعة ما لم يثبت خلاف ذلك.</small>
+</div>
+</footer>
+
+<a href="tel:{tel}" class="float-call" aria-label="اتصل بصيانة تكييفات باور">☎</a>
+
+</body>
+</html>
+"""
+
+out = Path("/mnt/data/index_power_embedded.html")
+out.write_text(page, encoding="utf-8")
+print(f"Created: {out}")
+print(f"Size: {out.stat().st_size/1024/1024:.2f} MB")
